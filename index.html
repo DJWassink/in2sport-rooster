@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>in2sport rooster</title>
+    <link rel="stylesheet" href="https://in2sport.sportbitapp.nl/cbm/css/embed/rooster/rooster.css" type="text/css">
+</head>
+<body style="background: black;">
+    <div id="sportbit-rooster">
+        <div class="embed-rooster Donker"></div>
+    </div>
+    <div id="sportbit-popup" style="display: none;"></div>
+</body>
+
+<script>
+    var embed_rooster = {
+        scrollTop: null,
+        init: function() {
+            embed_rooster.laadWeek();
+        },
+        clickOutSidePopup: function(e) {
+            if (document.getElementById("sportbit-popup-box").contains(e.target)) {} else {
+                embed_rooster.closeEvent()
+            }
+        },
+        openEvent: function(elem) {
+            var popup = document.getElementById("sportbit-popup");
+            var params = "?";
+            params += "eventid=" + elem.getAttribute("data-eventid");
+            if (popup) {
+                var xhttp = new XMLHttpRequest;
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        popup.innerHTML = this.responseText;
+                        embed_rooster.scrollTop = document.body.scrollTop || window.pageYOffset || document.documentElement.scrollTop;
+                        document.body.classList.add("sbm-hide");
+                        popup.style.display = "block";
+                        if (document.documentElement.clientWidth >= 750) {
+                            window.addEventListener("click", embed_rooster.clickOutSidePopup)
+                        } else {
+                            document.body.scrollTop = 0;
+                            window.pageYOffset = 0;
+                            document.documentElement.scrollTop = 0
+                        }
+                    }
+                };
+                xhttp.open("GET", "https://in2sport.sportbitapp.nl/cbm/embed/rooster/popup/" + params, true);
+                xhttp.send()
+            }
+        },
+        closeEvent: function() {
+            var popup = document.getElementById("sportbit-popup");
+            if (popup) {
+                document.body.classList.remove("sbm-hide");
+                popup.style.display = "none";
+                if (document.documentElement.clientWidth >= 750) {
+                    window.removeEventListener("click", embed_rooster.clickOutSidePopup)
+                } else {
+                    document.body.scrollTop = embed_rooster.scrollTop;
+                    window.pageYOffset = embed_rooster.scrollTop;
+                    document.documentElement.scrollTop = embed_rooster.scrollTop
+                }
+            }
+        },
+        laadVorigeWeek: function() {
+            var period = document.getElementById("sportbit-periode");
+            var jaar = period.getAttribute("data-prevyear");
+            var weekNr = period.getAttribute("data-prevweek");
+            embed_rooster.laadWeek(jaar, weekNr)
+        },
+        laadVolgendeWeek: function() {
+            var period = document.getElementById("sportbit-periode");
+            var jaar = period.getAttribute("data-nextyear");
+            var weekNr = period.getAttribute("data-nextweek");
+            embed_rooster.laadWeek(jaar, weekNr)
+        },
+        laadWeek: async function(jaar, weekNr) {
+            let params = "?";
+            if (jaar !== undefined) {
+                params += "jaar=" + jaar;
+            }
+            if (weekNr !== undefined) {
+                params += "&weeknr=" + weekNr;
+            }
+
+            var target = document.getElementById("sportbit-rooster");
+            target.firstElementChild.classList.add("loading");
+
+            var xhttp = new XMLHttpRequest;
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    target.innerHTML = this.responseText
+                    target.firstChild.classList.add('Donker');
+                } else {
+                    target.firstElementChild.classList.remove("loading")
+                }
+            };
+            xhttp.open("GET", "https://in2sport.sportbitapp.nl/cbm/embed/rooster/web/" + params, true);
+            xhttp.send()
+        }
+    };
+
+    embed_rooster.init();
+</script>
+
+</html>
